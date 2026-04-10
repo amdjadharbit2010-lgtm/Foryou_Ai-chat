@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foryou AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050508;
+  --surface:#0d0d18;
+  --surface2:#13131f;
+  --border:#1e1e35;
+  --accent:#7c6bff;
+  --accent2:#3ecfcf;
+  --text:#eeeef5;
+  --muted:#555570;
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+/* خلفية متحركة */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(124,107,255,0.08),transparent),
+             radial-gradient(ellipse 60% 40% at 80% 90%,rgba(62,207,207,0.06),transparent);
+  pointer-events:none;z-index:0
+}
+
+header{
+  position:relative;z-index:10;
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;
+  background:rgba(13,13,24,0.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+}
+.logo-wrap{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 0 20px rgba(124,107,255,0.4);
+  flex-shrink:0;
+}
+.header-text h1{font-size:1.15rem;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-text p{font-size:0.72rem;color:var(--muted);margin-top:1px}
+.status-dot{width:8px;height:8px;background:#3ecfcf;border-radius:50%;margin-right:auto;margin-left:0;box-shadow:0 0 8px #3ecfcf;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+#chat{
+  flex:1;overflow-y:auto;
+  padding:24px 16px;
+  display:flex;flex-direction:column;gap:20px;
+  position:relative;z-index:1;
+  scroll-behavior:smooth;
+}
+#chat::-webkit-scrollbar{width:4px}
+#chat::-webkit-scrollbar-track{background:transparent}
+#chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* رسالة ترحيب */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:40px 20px;gap:16px;
+  animation:fadeUp 0.6s ease;
+}
+.welcome-icon{
+  width:80px;height:80px;border-radius:24px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  box-shadow:0 0 40px rgba(124,107,255,0.3);
+}
+.welcome h2{font-size:1.4rem;font-weight:700}
+.welcome p{font-size:0.85rem;color:var(--muted);line-height:1.7;max-width:280px}
+.suggestions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:8px}
+.sug-btn{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:12px 16px;border-radius:12px;
+  font-family:'Cairo',sans-serif;font-size:0.85rem;
+  cursor:pointer;text-align:right;
+  transition:all 0.2s;
+}
+.sug-btn:hover{background:var(--surface);border-color:var(--accent);color:var(--accent)}
+
+/* الفقاعات */
+.bubble-wrap{display:flex;gap:10px;align-items:flex-end;animation:fadeUp 0.3s ease}
+.bubble-wrap.user{flex-direction:row-reverse}
+.avatar{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.avatar.ai{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(124,107,255,0.3)}
+.avatar.user{background:var(--surface2);border:1px solid var(--border)}
+
+.bubble{
+  max-width:75%;padding:14px 18px;
+  border-radius:20px;line-height:1.75;
+  font-size:0.92rem;
+}
+.bubble.ai{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-bottom-right-radius:4px;
+}
+.bubble.user{
+  background:linear-gradient(135deg,var(--accent),#5a54e8);
+  border-bottom-left-radius:4px;
+  box-shadow:0 4px 20px rgba(124,107,255,0.25);
+}
+
+/* typing */
+.typing-bubble{
+  display:flex;gap:6px;padding:16px 20px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;border-bottom-right-radius:4px;
+  width:fit-content;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+/* مربع الإدخال */
+#input-bar{
+  position:relative;z-index:10;
+  padding:12px 16px 20px;
+  background:rgba(13,13,24,0.97);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(20px);
+}
+.input-wrap{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:10px 10px 10px 14px;
+  transition:border-color 0.2s;
+}
+.input-wrap:focus-within{border-color:var(--accent)}
+textarea{
+  flex:1;background:transparent;border:none;
+  color:var(--text);font-family:'Cairo',sans-serif;
+  font-size:0.93rem;resize:none;outline:none;
+  max-height:120px;line-height:1.6;
+  padding-top:2px;
+}
+textarea::placeholder{color:var(--muted)}
+#send{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:transform 0.2s,opacity 0.2s;
+  box-shadow:0 4px 15px rgba(124,107,255,0.35);
+}
+#send:hover{transform:scale(1.05)}
+#send:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+#send svg{width:18px;height:18px;fill:white}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">🤖</div>
+  <div class="header-text">
+    <h1>Foryou AI</h1>
+    <p>مساعدك الذكي الشخصي</p>
+  </div>
+  <div class="status-dot"></div>
+</header>
+
+<div id="chat">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">✨</div>
+    <h2>مرحباً بك!</h2>
+    <p>أنا Foryou AI، مساعدك الذكي. اسألني أي شيء وسأكون هنا لمساعدتك.</p>
+    <div class="suggestions">
+      <button class="sug-btn" onclick="quickSend(this)">💡 اشرح لي كيف أبدأ مشروعاً ناجحاً</button>
+      <button class="sug-btn" onclick="quickSend(this)">🌍 ما هي أفضل طرق تعلم لغة جديدة؟</button>
+      <button class="sug-btn" onclick="quickSend(this)">🤖 ما هو الذكاء الاصطناعي؟</button>
+    </div>
+  </div>
+</div>
+
+<div id="input-bar">
+  <div class="input-wrap">
+    <textarea id="msg" placeholder="اكتب رسالتك..." rows="1"></textarea>
+    <button id="send" onclick="send()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const chat = document.getElementById('chat');
+const msg = document.getElementById('msg');
+const sendBtn = document.getElementById('send');
+
+msg.addEventListener('input', () => {
+  msg.style.height = 'auto';
+  msg.style.height = Math.min(msg.scrollHeight, 120) + 'px';
+});
+
+msg.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+
+function quickSend(btn) {
+  msg.value = btn.textContent.slice(2).trim();
+  send();
+}
+
+async function send() {
+  const text = msg.value.trim();
+  if (!text || sendBtn.disabled) return;
+
+  document.getElementById('welcome')?.remove();
+  msg.value = ''; msg.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addBubble(text, 'user');
+
+  const typing = addTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ message: text })
+    });
+    const data = await res.json();
+    typing.remove();
+    addBubble(data.reply || 'عذراً، حدث خطأ.', 'ai');
+  } catch {
+    typing.remove();
+    addBubble('⚠️ تعذّر الاتصال. تحقق من الإنترنت وحاول مجدداً.', 'ai');
+  }
+  sendBtn.disabled = false;
+}
+
+function addBubble(text, type) {
+  const wrap = document.createElement('div');
+  wrap.className = `bubble-wrap ${type}`;
+  const av = document.createElement('div');
+  av.className = `avatar ${type}`;
+  av.textContent = type === 'ai' ? '🤖' : '👤';
+  const b = document.createElement('div');
+  b.className = `bubble ${type}`;
+  b.textContent = text;
+  wrap.appendChild(av);
+  wrap.appendChild(b);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap;
+}
+
+function addTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-wrap';
+  const av = document.createElement('div');
+  av.className = 'avatar ai'; av.textContent = '🤖';
+  const t = document.createElement('div');
+  t.className = 'typing-bubble';
+  t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  wrap.appendChild(av); wrap.appendChild(t);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap;
+}
+</script>
+</body>
+</html>
